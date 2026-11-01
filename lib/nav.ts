@@ -10,6 +10,7 @@ export interface NavItem {
 export const NAV: NavItem[] = [
   { href: '/', label: 'الرئيسية', en: 'Home', icon: 'dashboard', group: 'main' },
   { href: '/customers', label: 'القضايا', en: 'Cases', icon: 'users', group: 'main' },
+  { href: '/fix', label: 'التصحيح', en: 'Fixes', icon: 'wrench', group: 'main' },
   { href: '/submit', label: 'حزمة التقديم', en: 'Submit', icon: 'package', group: 'main' },
   { href: '/documents', label: 'المستندات', en: 'Documents', icon: 'folder', group: 'main' },
   { href: '/reports', label: 'التقارير', en: 'Reports', icon: 'chart', group: 'main' },

@@ -97,4 +97,7 @@ export interface CaseRecord {
   appealReference?: string;
   decisionAt?: string;
   decisionNote?: string;
+  /** Field-by-field correction checklist (key → done). */
+  corrections?: Record<string, boolean>;
+  correctionsUpdatedAt?: string;
 }

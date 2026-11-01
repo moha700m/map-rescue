@@ -124,6 +124,9 @@ export default function CaseDetail({ record, onClose }: { record: CaseRecord; on
               </option>
             ))}
           </select>
+          <Link href="/fix" className="btn-ghost">
+            التصحيح
+          </Link>
           <Link href="/submit" className="btn-ghost">
             حزمة التقديم
           </Link>

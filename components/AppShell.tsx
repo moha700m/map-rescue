@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   Menu,
   Package,
+  Wrench,
   Plug,
   PlusCircle,
   Search,
@@ -43,6 +44,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   sparkles: Sparkles,
   settings: Settings,
   package: Package,
+  wrench: Wrench,
 };
 
 function Logo() {

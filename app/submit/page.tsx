@@ -356,6 +356,9 @@ export default function SubmitPage() {
             </SectionCard>
 
             <SectionCard title="رقم الملف + المتابعة" description="من هنا نعرف وين وصل الاستئناف">
+              <Link href="/fix" className="btn-ghost btn-sm mb-3 w-full justify-center">
+                افتح لوحة التصحيح
+              </Link>
               <Field label="Profile ID" hint="الملف ← الثلاث نقاط ← Business profile settings ← Advanced settings">
                 <div className="flex gap-1.5">
                   <input
