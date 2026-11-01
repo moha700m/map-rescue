@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   Building2,
   CalendarClock,
@@ -123,6 +124,9 @@ export default function CaseDetail({ record, onClose }: { record: CaseRecord; on
               </option>
             ))}
           </select>
+          <Link href="/submit" className="btn-ghost">
+            حزمة التقديم
+          </Link>
           <TaskRunner taskId="appeal-generation" input={input} caseCode={live.code} variant="ghost" label="الاستئناف لحاله" />
           <TaskRunner taskId="gbp-diagnosis" input={input} caseCode={live.code} label="تشخيص لحاله" onComplete={handleDiagnosis} />
         </>

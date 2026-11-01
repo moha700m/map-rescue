@@ -16,6 +16,7 @@ export const NAV: NavItem[] = [
   { href: '/appeals', label: 'الاستئنافات', en: 'Appeals', icon: 'file', group: 'الملفات' },
   { href: '/documents', label: 'المستندات', en: 'Documents', icon: 'folder', group: 'الملفات' },
   { href: '/tracker', label: 'المتابعة', en: 'Tracker', icon: 'activity', group: 'الملفات' },
+  { href: '/submit', label: 'حزمة التقديم', en: 'Submit', icon: 'package', group: 'الملفات' },
 
   { href: '/reports', label: 'التقارير', en: 'Reports', icon: 'chart', group: 'النتائج' },
 

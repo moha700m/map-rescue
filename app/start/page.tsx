@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CheckCircle2, FileUp, Loader2, Send, ShieldCheck, Sparkles, Trash2, X } from 'lucide-react';
 import { newCaseDraft, upsertCase, makeDoc } from '@/lib/client/store';
 import { guessDocCategory, readSuspensionMessage } from '@/lib/client/pipeline';
+import { putFile, dataUrlToBlob } from '@/lib/client/files';
 import { toast } from '@/lib/client/toast';
 import type { CaseRecord } from '@/lib/types';
 import { COUNTRY_META } from '@/lib/constants';
@@ -53,7 +54,7 @@ export default function StartPage() {
     setFiles((prev) => [...prev, ...next].slice(0, 6));
   }
 
-  function submit() {
+  async function submit() {
     if (!ready) {
       toast('ناقصنا كم حاجة', { description: 'اسم النشاط، اسمك، جوالك، والمدينة', tone: 'warn' });
       return;
@@ -80,6 +81,9 @@ export default function StartPage() {
       ),
       timeline: [...draft.timeline, { at: new Date().toISOString(), label: 'وصل الطلب من العميل', tone: 'neutral' }],
     };
+    for (let i = 0; i < record.documents.length; i += 1) {
+      if (files[i]?.dataUrl) await putFile(record.documents[i].id, dataUrlToBlob(files[i].dataUrl));
+    }
     const stored = upsertCase(record);
     setSaved(stored);
     setBusy(false);

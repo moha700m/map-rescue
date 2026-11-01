@@ -8,6 +8,7 @@ import { DocBadge, EmptyState, Field, PageHeader } from '@/components/ui/primiti
 import { caseTaskInput } from '@/lib/case-input';
 import { useCases, upsertCase, makeDoc } from '@/lib/client/store';
 import { guessDocCategory } from '@/lib/client/pipeline';
+import { putFile, dataUrlToBlob } from '@/lib/client/files';
 import { toast } from '@/lib/client/toast';
 import type { Attachment } from '@/lib/ai/messages';
 import type { CaseRecord } from '@/lib/types';
@@ -53,6 +54,9 @@ export default function DocumentsPage() {
           status: 'parsed',
         }),
       );
+      for (let i = 0; i < docs.length; i += 1) {
+        if (next[i]?.dataUrl) await putFile(docs[i].id, dataUrlToBlob(next[i].dataUrl));
+      }
       upsertCase({
         ...selected,
         documents: [...selected.documents, ...docs],

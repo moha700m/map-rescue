@@ -91,4 +91,10 @@ export interface CaseRecord {
   documents: EvidenceDoc[];
   timeline: { at: string; label: string; tone: 'neutral' | 'good' | 'warn' | 'bad' }[];
   fee?: number;
+  /** Google Business Profile ID (ازرع الدخول: الإعدادات المتقدمة). */
+  gbpProfileId?: string;
+  appealSubmittedAt?: string;
+  appealReference?: string;
+  decisionAt?: string;
+  decisionNote?: string;
 }

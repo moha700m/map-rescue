@@ -12,6 +12,7 @@ import {
   FolderOpen,
   LayoutDashboard,
   Menu,
+  Package,
   Plug,
   PlusCircle,
   Search,
@@ -40,6 +41,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   plug: Plug,
   sparkles: Sparkles,
   settings: Settings,
+  package: Package,
 };
 
 function Logo() {
