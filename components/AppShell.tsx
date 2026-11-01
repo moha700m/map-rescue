@@ -105,7 +105,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     purgeLegacyData();
-    setDemo(isDemo());
+    const sync = () => setDemo(isDemo());
+    sync();
+    window.addEventListener('mra:store', sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener('mra:store', sync);
+      window.removeEventListener('storage', sync);
+    };
   }, [pathname]);
 
   useEffect(() => {
