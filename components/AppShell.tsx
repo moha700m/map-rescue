@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { NAV, NAV_GROUPS, GROUP_LABEL, navFor } from '@/lib/nav';
 import { cn } from '@/lib/utils';
+import { purgeLegacyData } from '@/lib/client/store';
 import { getHealth } from '@/lib/client/ai';
 import Toaster from '@/components/ui/Toaster';
 
@@ -99,6 +100,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [query, setQuery] = useState('');
   const current = navFor(pathname || '/');
+
+  useEffect(() => {
+    purgeLegacyData();
+  }, []);
 
   useEffect(() => {
     setOpen(false);

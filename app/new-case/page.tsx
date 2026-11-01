@@ -274,7 +274,7 @@ export default function NewCasePage() {
                     if (guess) set('category', guess);
                   }
                 }}
-                placeholder="مثال: مطعم بيت المندي"
+                placeholder="اسم النشاط كما هو في قوقل"
               />
               {showErrors && errors.businessName ? <span className="mt-1 block text-2xs text-rosex-400">{errors.businessName}</span> : null}
             </label>
@@ -283,7 +283,7 @@ export default function NewCasePage() {
               <span className="label">
                 اسم العميل <span className="text-rosex-400">*</span>
               </span>
-              <input className="input" value={form.customerName} onChange={(e) => set('customerName', e.target.value)} placeholder="سارة العتيبي" />
+              <input className="input" value={form.customerName} onChange={(e) => set('customerName', e.target.value)} placeholder="الاسم الكامل" />
               {showErrors && errors.customerName ? <span className="mt-1 block text-2xs text-rosex-400">{errors.customerName}</span> : null}
             </label>
 

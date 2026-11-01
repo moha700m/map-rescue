@@ -5,9 +5,9 @@ import type { CaseRecord, DiagnosisResult, EvidenceDoc } from '../types';
 import type { UsageEntry } from '../ai/contracts';
 import { uid } from '../utils';
 
-const CASES_KEY = 'mra.cases.v2';
-const USAGE_KEY = 'mra.usage.v2';
-const SEEDED_KEY = 'mra.seeded.v2';
+const CASES_KEY = 'mra.cases.v3';
+const USAGE_KEY = 'mra.usage.v3';
+const LEGACY_KEYS = ['mra.cases.v2', 'mra.usage.v2', 'mra.seeded.v2', 'mra.demo.v1'];
 
 const EVENT = 'mra:store';
 
@@ -123,6 +123,16 @@ export function makeDoc(partial: Partial<EvidenceDoc> & { name: string; mimeType
   } as EvidenceDoc;
 }
 
+/** One-time cleanup of older builds that shipped placeholder cases. */
+export function purgeLegacyData() {
+  if (typeof window === 'undefined') return;
+  try {
+    LEGACY_KEYS.forEach((key) => window.localStorage.removeItem(key));
+  } catch {
+    /* ignore */
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* React bindings                                                      */
 /* ------------------------------------------------------------------ */
@@ -160,6 +170,6 @@ export function useUsageRows() {
 export function clearWorkspace() {
   write(CASES_KEY, []);
   write(USAGE_KEY, []);
-  if (typeof window !== 'undefined') window.localStorage.setItem(SEEDED_KEY, '1');
+  purgeLegacyData();
   emit();
 }

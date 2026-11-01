@@ -164,7 +164,7 @@ export default function StartPage() {
               className="input"
               value={form.businessName}
               onChange={(e) => setForm((p) => ({ ...p, businessName: e.target.value }))}
-              placeholder="مثال: مطعم بيت المندي"
+              placeholder="اسم النشاط كما هو في قوقل"
             />
           </label>
           <label className="block">
