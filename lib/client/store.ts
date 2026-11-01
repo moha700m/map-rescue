@@ -7,7 +7,7 @@ import { uid } from '../utils';
 
 const CASES_KEY = 'mra.cases.v3';
 const USAGE_KEY = 'mra.usage.v3';
-const LEGACY_KEYS = ['mra.cases.v2', 'mra.usage.v2', 'mra.seeded.v2', 'mra.demo.v1'];
+const LEGACY_KEYS = ['mra.cases.v2', 'mra.usage.v2', 'mra.seeded.v2'];
 
 const EVENT = 'mra:store';
 
