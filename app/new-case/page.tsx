@@ -36,6 +36,7 @@ export default function NewCasePage() {
   const [events, setEvents] = useState<PipelineEvent[]>([]);
   const [autoRunning, setAutoRunning] = useState(false);
   const [autoDone, setAutoDone] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
   const categoryTouched = useRef(false);
 
   const [form, setForm] = useState(() => {
@@ -77,6 +78,16 @@ export default function NewCasePage() {
   }, [form]);
 
   const canNext = Object.keys(errors).length === 0;
+
+  function goNext() {
+    if (!canNext) {
+      setShowErrors(true);
+      toast('ناقصك كم حقل', { description: Object.values(errors).join(' · '), tone: 'warn' });
+      return;
+    }
+    setShowErrors(false);
+    setStep((s) => Math.min(3, s + 1));
+  }
 
   function applySuggestion() {
     if (!read) return;
@@ -285,13 +296,13 @@ export default function NewCasePage() {
         <div className="card p-5">
           {step === 1 ? (
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="اسم العميل" required error={errors.customerName}>
+              <Field label="اسم العميل" required error={showErrors ? errors.customerName : undefined}>
                 <input className="input" value={form.customerName} onChange={(e) => set('customerName', e.target.value)} placeholder="مثال: سارة العتيبي" autoComplete="off" />
               </Field>
               <Field label="جوال العميل">
                 <input className="input" dir="ltr" value={form.customerPhone} onChange={(e) => set('customerPhone', e.target.value)} placeholder="+966 5x xxx xxxx" />
               </Field>
-              <Field label="اسم النشاط" required error={errors.businessName} hint="نفس اللي في السجل التجاري">
+              <Field label="اسم النشاط" required error={showErrors ? errors.businessName : undefined} hint="نفس اللي في السجل التجاري">
                 <input
                   className="input"
                   value={form.businessName}
@@ -306,7 +317,7 @@ export default function NewCasePage() {
                   placeholder="مثال: مطعم بيت المندي"
                 />
               </Field>
-              <Field label="فئة النشاط" required error={errors.category} hint={form.category ? 'عدّلها لو ما هي بالضبط' : 'بتنعبّى تلقائي من اسم النشاط'}>
+              <Field label="فئة النشاط" required error={showErrors ? errors.category : undefined} hint={form.category ? 'عدّلها لو ما هي بالضبط' : 'بتنعبّى تلقائي من اسم النشاط'}>
                 <input
                   className="input"
                   value={form.category}
@@ -317,7 +328,7 @@ export default function NewCasePage() {
                   placeholder="مطعم / صالون / عيادة…"
                 />
               </Field>
-              <Field label="المدينة" required error={errors.city}>
+              <Field label="المدينة" required error={showErrors ? errors.city : undefined}>
                 <input className="input" value={form.city} onChange={(e) => set('city', e.target.value)} placeholder="الرياض" />
               </Field>
               <Field label="الدولة">
@@ -464,11 +475,11 @@ export default function NewCasePage() {
               <ArrowRight size={15} /> رجوع
             </button>
             {step < 3 ? (
-              <button type="button" className="btn-primary" onClick={() => setStep((s) => Math.min(3, s + 1))} disabled={!canNext || (step === 1 && !canNext)}>
+              <button type="button" className="btn-primary" onClick={goNext}>
                 التالي <ArrowLeft size={15} />
               </button>
             ) : (
-              <button type="button" className="btn-primary" onClick={createCase} disabled={!canNext}>
+              <button type="button" className="btn-primary" onClick={() => (canNext ? createCase() : goNext())}>
                 <CircleCheck size={15} /> احفظ وخلّه يشتغل
               </button>
             )}
