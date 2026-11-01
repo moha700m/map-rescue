@@ -7,7 +7,7 @@ import AppShell from '@/components/AppShell';
 import CaseDetail from '@/components/cases/CaseDetail';
 import TaskRunner from '@/components/ai/TaskRunner';
 import { EmptyState, PageHeader, RiskBadge, StatusBadge, Segmented } from '@/components/ui/primitives';
-import { caseTaskInput } from '@/components/cases/CaseDetail';
+import { caseTaskInput } from '@/lib/case-input';
 import { useCases } from '@/lib/client/store';
 import { COUNTRY_META } from '@/lib/constants';
 import type { CaseRecord } from '@/lib/types';
@@ -31,7 +31,7 @@ export default function SuspendedPage() {
     <AppShell>
       <PageHeader
         title="الملفات المعلقة"
-        description="كل ملف معلّق مع درجة الخطر وحالة التشخيص — ابدأ التشخيص أو راجع خطة الاسترداد."
+        description="كل ملف موقفه قوقل، ومرتّب حسب الخطورة. اضغط «تشخيص» وخلّه يشتغل، أو افتح التفاصيل."
         actions={
           <>
             <Segmented
@@ -123,8 +123,8 @@ export default function SuspendedPage() {
       ) : (
         <EmptyState
           icon={AlertTriangle}
-          title="لا ملفات معلقة ضمن هذا الفلتر"
-          description="جميع القضايا إما مستعادة أو لم تبدأ بعد."
+          title="ما فيه ملفات في هذا الفلتر"
+          description="يا إنها رجعت، يا إنها لسا ما بدأت."
           action={
             <Link href="/customers" className="btn-ghost">
               مراجعة كل القضايا

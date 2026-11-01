@@ -80,6 +80,14 @@ export interface CaseRecord {
   diagnosis?: DiagnosisResult;
   appealAr?: string;
   appealEn?: string;
+  /** Extra AI outputs produced by the automatic pipeline. */
+  intel?: {
+    evidence?: unknown;
+    recommendations?: unknown;
+    summary?: unknown;
+    policy?: unknown;
+    documents?: unknown;
+  };
   documents: EvidenceDoc[];
   timeline: { at: string; label: string; tone: 'neutral' | 'good' | 'warn' | 'bad' }[];
   fee?: number;

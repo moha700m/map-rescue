@@ -43,12 +43,12 @@ export default function CustomersPage() {
   return (
     <AppShell>
       <PageHeader
-        title="العملاء والقضايا"
-        description="كل قضايا الاسترداد في مكان واحد — ابحث، صفِّ، وافتح أي قضية لتشغيل التشخيص."
+        title="القضايا"
+        description="كل قضاياك هنا. دوّر، صفّي، واضغط على أي قضية عشان تفتحها وتشتغل عليها."
         actions={
           <>
             <button type="button" className="btn-ghost" onClick={exportCsv} disabled={!filtered.length}>
-              <Download size={15} /> تصدير CSV
+              <Download size={15} /> نزّل CSV
             </button>
             <Link href="/new-case" className="btn-primary">
               <Plus size={15} /> قضية جديدة
@@ -64,7 +64,7 @@ export default function CustomersPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="ابحث بالاسم، النشاط، الكود، أو المدينة…"
+              placeholder="دوّر بالاسم أو النشاط أو المدينة…"
               className="h-10 flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
             />
             {query ? (
@@ -164,8 +164,8 @@ export default function CustomersPage() {
       ) : (
         <EmptyState
           icon={Users}
-          title={cases.length ? 'لا نتائج مطابقة' : 'لا توجد قضايا بعد'}
-          description={cases.length ? 'جرّب تعديل البحث أو إزالة الفلاتر.' : 'ابدأ بإنشاء أول قضية استرداد.'}
+          title={cases.length ? 'ما لقينا شي' : 'ما فيه قضايا بعد'}
+          description={cases.length ? 'جرّب تغيّر البحث أو تشيل الفلاتر.' : 'ابدأ بأول قضية وخلّ الذكاء يشتغل عليها.'}
           action={
             <Link href="/new-case" className="btn-primary">
               <Plus size={14} /> قضية جديدة

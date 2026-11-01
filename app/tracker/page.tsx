@@ -44,7 +44,7 @@ export default function TrackerPage() {
 
   return (
     <AppShell>
-      <PageHeader title="متتبع الاسترداد" description="مسار كل قضية من التشخيص إلى القرار النهائي — تحديث الحالة يوثّق الخط الزمني." />
+      <PageHeader title="متتبع الاسترداد" description="تابع كل قضية وين وصلت، من أول ما تنفتح لين يرد قوقل." />
 
       <div className="card mb-3 p-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

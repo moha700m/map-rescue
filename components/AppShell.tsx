@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { NAV, NAV_GROUPS, navFor } from '@/lib/nav';
 import { cn } from '@/lib/utils';
-import { DEMO_MODE, ensureSeed } from '@/lib/client/store';
+import { ensureSeed } from '@/lib/client/store';
 import { getHealth } from '@/lib/client/ai';
 import Toaster from '@/components/ui/Toaster';
 
@@ -82,10 +82,10 @@ function StatusPill() {
       />
       <span className="min-w-0 leading-tight">
         <span className="block text-[11px] font-bold text-slate-200">
-          {connected ? 'OpenRouter متصل' : 'غير متصل'}
+          {connected ? 'متصل بـ OpenRouter' : 'ما فيه مفتاح'}
         </span>
         <span className="block truncate text-[10px] text-slate-500" dir="ltr">
-          {state?.model?.split('/')[1] ?? 'أضف مفتاحًا للبدء'}
+          {state?.model?.split('/')[1] ?? 'أضف المفتاح عشان يشتغل'}
         </span>
       </span>
     </Link>
@@ -175,7 +175,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className="space-y-2 border-t border-line/70 p-3">
         <StatusPill />
         <p className="px-1 text-[10px] leading-relaxed text-slate-600">
-          الإصدار 2.0 · OpenRouter · لا استئناف آلي
+          النسخة 2.0 · كل الذكاء عبر OpenRouter · ما فيه استئناف آلي
         </p>
       </div>
     </div>
@@ -219,15 +219,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               className="hidden items-center gap-2 rounded-xl border border-line bg-ink-850/70 px-3 py-2 text-xs text-slate-400 transition-colors hover:border-line-strong hover:text-slate-200 sm:flex"
             >
               <Search size={14} />
-              <span>ابحث عن صفحة أو إجراء…</span>
+              <span>دوّر على صفحة…</span>
               <span className="kbd ms-2">⌘K</span>
             </button>
 
-            {DEMO_MODE ? (
-              <span className="hidden rounded-lg border border-amberx-500/25 bg-amberx-500/10 px-2 py-1 text-[10px] font-bold text-amberx-400 sm:inline">
-                نسخة معاينة
-              </span>
-            ) : null}
 
             <button type="button" className="relative rounded-xl border border-line p-2 text-slate-400 transition-colors hover:text-slate-200" aria-label="التنبيهات">
               <Bell size={16} />
@@ -253,7 +248,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="انتقل إلى…"
+                placeholder="وين تبي تروح؟"
                 className="h-12 flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
               />
               <button type="button" onClick={() => setPaletteOpen(false)} className="kbd">ESC</button>

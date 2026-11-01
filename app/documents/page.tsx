@@ -5,10 +5,12 @@ import { FileUp, FolderOpen, ScanText, Trash2, FileText, FileSearch } from 'luci
 import AppShell from '@/components/AppShell';
 import TaskRunner from '@/components/ai/TaskRunner';
 import { DocBadge, EmptyState, Field, PageHeader } from '@/components/ui/primitives';
-import { caseTaskInput } from '@/components/cases/CaseDetail';
+import { caseTaskInput } from '@/lib/case-input';
 import { useCases, upsertCase, makeDoc } from '@/lib/client/store';
+import { guessDocCategory } from '@/lib/client/pipeline';
 import { toast } from '@/lib/client/toast';
 import type { Attachment } from '@/lib/ai/messages';
+import type { CaseRecord } from '@/lib/types';
 import { bytes, formatDate } from '@/lib/utils';
 
 export default function DocumentsPage() {
@@ -39,38 +41,37 @@ export default function DocumentsPage() {
       if (dataUrl) next.push({ name: file.name, mimeType: file.type || 'application/octet-stream', dataUrl, size: file.size });
     }
     setAttachments((prev) => [...prev, ...next].slice(0, 5));
-  }
 
-  function attachToCase() {
-    if (!selected || !attachments.length) return;
-    const docs = attachments.map((a) =>
-      makeDoc({
-        name: a.name,
-        mimeType: a.mimeType,
-        size: a.size ?? 0,
-        category: a.mimeType.startsWith('image/') ? 'storefront' : 'commercial_reg',
-        status: 'parsed',
-      }),
-    );
-    upsertCase({
-      ...selected,
-      documents: [...selected.documents, ...docs],
-      timeline: [...selected.timeline, { at: new Date().toISOString(), label: `تم رفع ${docs.length} مستند`, tone: 'neutral' }],
-    });
-    toast('تم ربط المستندات بالقضية', { description: selected.code, tone: 'success' });
-    setAttachments([]);
+    // Smart link: attach to the selected case right away, with a guessed type.
+    if (selected && next.length) {
+      const docs = next.map((a) =>
+        makeDoc({
+          name: a.name,
+          mimeType: a.mimeType,
+          size: a.size ?? 0,
+          category: guessDocCategory(a.name) as CaseRecord['documents'][number]['category'],
+          status: 'parsed',
+        }),
+      );
+      upsertCase({
+        ...selected,
+        documents: [...selected.documents, ...docs],
+        timeline: [...selected.timeline, { at: new Date().toISOString(), label: `انربطت ${docs.length} مستندات بالقضية`, tone: 'neutral' }],
+      });
+      toast('انربطت تلقائي', { description: `${docs.length} ملف على ${selected.code}`, tone: 'success' });
+    }
   }
 
   return (
     <AppShell>
       <PageHeader
         title="مركز المستندات"
-        description="ارفع الأدلة، وافهم محتواها عبر نماذج متعددة الوسائط — صور وPDF تُرسل مباشرة إلى OpenRouter."
+        description="ارفع السجل والرخصة وصور الواجهة. الملفات تنربط بالقضية تلقائي، والذكاء يقراها ويقول لك وش ناقص."
       />
 
       <div className="grid gap-3 lg:grid-cols-[1.1fr_1fr]">
         <section className="card p-4">
-          <h2 className="mb-3 text-sm font-bold text-slate-100">رفع أدلة جديدة</h2>
+          <h2 className="mb-3 text-sm font-bold text-slate-100">ارفع مستندات</h2>
           <Field label="ربط بالقضية">
             <select className="select" value={selected?.id ?? ''} onChange={(e) => setCaseId(e.target.value)}>
               {cases.map((c) => (
@@ -104,9 +105,6 @@ export default function DocumentsPage() {
           ) : null}
 
           <div className="mt-3 flex flex-wrap gap-1.5">
-            <button type="button" className="btn-ghost btn-sm" onClick={attachToCase} disabled={!attachments.length}>
-              <FolderOpen size={12} /> ربط بالقضية
-            </button>
             {selected ? (
               <>
                 <TaskRunner
@@ -131,7 +129,7 @@ export default function DocumentsPage() {
             ) : null}
           </div>
           <p className="mt-2 text-[10px] leading-relaxed text-slate-600">
-            تحليل الملفات يتم server-side عبر OpenRouter. الملفات لا تُرسل إلى أي مزوّد آخر، ولا تُخزَّن خارج مساحة العمل.
+            الملف ينربط بالقضية أول ما تختاره — والتحليل يمر على OpenRouter بس.
           </p>
         </section>
 
@@ -156,14 +154,14 @@ export default function DocumentsPage() {
               ))}
             </ul>
           ) : (
-            <EmptyState icon={FolderOpen} title="لا مستندات بعد" description="ارفع أول مستند لبدء التحليل." />
+            <EmptyState icon={FolderOpen} title="ما فيه مستندات بعد" description="ارفع أول مستند لبدء التحليل." />
           )}
         </section>
       </div>
 
       <div className="card mt-3 p-4">
         <h2 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-100">
-          <ScanText size={14} className="text-brand-300" /> كيف يعمل التحليل؟
+          <ScanText size={14} className="text-brand-300" /> كيف تشتغل؟
         </h2>
         <div className="grid gap-2.5 sm:grid-cols-3">
           {[

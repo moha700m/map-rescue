@@ -8,23 +8,23 @@ export interface NavItem {
 }
 
 export const NAV: NavItem[] = [
-  { href: '/', label: 'لوحة التحكم', en: 'Dashboard', icon: 'dashboard', group: 'لوحة العمل' },
-  { href: '/customers', label: 'العملاء والقضايا', en: 'Cases', icon: 'users', group: 'لوحة العمل' },
-  { href: '/new-case', label: 'قضية جديدة', en: 'New case', icon: 'plus', group: 'لوحة العمل' },
+  { href: '/', label: 'الرئيسية', en: 'Home', icon: 'dashboard', group: 'شغلك اليومي' },
+  { href: '/customers', label: 'القضايا', en: 'Cases', icon: 'users', group: 'شغلك اليومي' },
+  { href: '/new-case', label: 'قضية جديدة', en: 'New case', icon: 'plus', group: 'شغلك اليومي' },
 
-  { href: '/suspended', label: 'الملفات المعلقة', en: 'Suspended', icon: 'alert', group: 'التشخيص والاسترداد' },
-  { href: '/appeals', label: 'مولد الاستئناف', en: 'Appeals', icon: 'file', group: 'التشخيص والاسترداد' },
-  { href: '/documents', label: 'مركز المستندات', en: 'Documents', icon: 'folder', group: 'التشخيص والاسترداد' },
-  { href: '/tracker', label: 'متتبع الاسترداد', en: 'Tracker', icon: 'activity', group: 'التشخيص والاسترداد' },
+  { href: '/suspended', label: 'الملفات المعلّقة', en: 'Suspended', icon: 'alert', group: 'الملفات' },
+  { href: '/appeals', label: 'الاستئنافات', en: 'Appeals', icon: 'file', group: 'الملفات' },
+  { href: '/documents', label: 'المستندات', en: 'Documents', icon: 'folder', group: 'الملفات' },
+  { href: '/tracker', label: 'المتابعة', en: 'Tracker', icon: 'activity', group: 'الملفات' },
 
-  { href: '/reports', label: 'التقارير', en: 'Reports', icon: 'chart', group: 'المخرجات' },
+  { href: '/reports', label: 'التقارير', en: 'Reports', icon: 'chart', group: 'النتائج' },
 
-  { href: '/google', label: 'ربط Google', en: 'Google', icon: 'plug', group: 'النظام' },
-  { href: '/settings/ai', label: 'الذكاء الاصطناعي', en: 'AI settings', icon: 'sparkles', group: 'النظام', badge: 'ai' },
-  { href: '/settings', label: 'إعدادات النظام', en: 'Settings', icon: 'settings', group: 'النظام' },
+  { href: '/settings/ai', label: 'إعدادات الذكاء', en: 'AI settings', icon: 'sparkles', group: 'الإعدادات', badge: 'ai' },
+  { href: '/google', label: 'ربط قوقل', en: 'Google', icon: 'plug', group: 'الإعدادات' },
+  { href: '/settings', label: 'الإعدادات', en: 'Settings', icon: 'settings', group: 'الإعدادات' },
 ];
 
-export const NAV_GROUPS = ['لوحة العمل', 'التشخيص والاسترداد', 'المخرجات', 'النظام'];
+export const NAV_GROUPS = ['شغلك اليومي', 'الملفات', 'النتائج', 'الإعدادات'];
 
 export function navFor(pathname: string) {
   if (pathname === '/') return NAV[0];

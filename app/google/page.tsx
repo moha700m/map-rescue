@@ -28,8 +28,8 @@ export default function GooglePage() {
   return (
     <AppShell>
       <PageHeader
-        title="ربط Google Business Profile"
-        description="اتصال رسمي عبر OAuth 2.0 — يُستخدم لجلب البيانات الحية فقط، ولا يقدّم أي استئناف تلقائيًا."
+        title="ربط قوقل بزنس"
+        description="اربط حساب قوقل عشان نجيب بيانات الملفات الحقيقية. الربط رسمي، وما نقدّم استئناف عنك."
       />
 
       <div className="grid gap-3 lg:grid-cols-[1.2fr_1fr]">

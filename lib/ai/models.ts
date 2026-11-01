@@ -185,3 +185,52 @@ export const PROVIDER_LABEL: Record<string, string> = {
   nvidia: 'NVIDIA',
   cohere: 'Cohere',
 };
+
+/**
+ * Picks the best model for a task automatically:
+ * per-task override → the matching preset (vision / long / economy / default)
+ * → the cheapest model that satisfies the required input modalities.
+ */
+export function pickModelForTask(
+  task: { id: string; needs: string[]; modelHint: 'default' | 'vision' | 'long' | 'economy' },
+  models: ModelInfo[],
+  settings: {
+    defaultModel: string;
+    visionModel: string;
+    longContextModel: string;
+    economyModel: string;
+    taskModels: Record<string, string | undefined>;
+  },
+): string {
+  const needs = (task.needs || []).filter((n) => n === 'image' || n === 'file') as Modality[];
+  const supportsAll = (id: string) => {
+    const model = findModel(models, id);
+    if (!model) return false;
+    return needs.every((n) => model.inputModalities.includes(n));
+  };
+
+  const preset =
+    task.modelHint === 'vision'
+      ? settings.visionModel
+      : task.modelHint === 'long'
+        ? settings.longContextModel
+        : task.modelHint === 'economy'
+          ? settings.economyModel
+          : settings.defaultModel;
+
+  const override = settings.taskModels?.[task.id];
+  if (override && (!needs.length || supportsAll(override))) return override;
+
+  if (preset && (!needs.length || supportsAll(preset))) return preset;
+
+  if (!needs.length) {
+    if (settings.defaultModel) return settings.defaultModel;
+    return models[0]?.id ?? preset;
+  }
+
+  const compatible = models
+    .filter((m) => needs.every((n) => m.inputModalities.includes(n)))
+    .sort((a, b) => a.promptPrice + a.completionPrice - (b.promptPrice + b.completionPrice));
+
+  return compatible[0]?.id ?? settings.visionModel ?? settings.defaultModel;
+}

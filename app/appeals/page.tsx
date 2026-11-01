@@ -6,7 +6,7 @@ import { Download, FileText, Languages, PenLine, Sparkles, Wand2 } from 'lucide-
 import AppShell from '@/components/AppShell';
 import TaskRunner from '@/components/ai/TaskRunner';
 import { CopyButton, EmptyState, Field, PageHeader, Segmented, StatusBadge } from '@/components/ui/primitives';
-import { caseTaskInput } from '@/components/cases/CaseDetail';
+import { caseTaskInput } from '@/lib/case-input';
 import { useCases, upsertCase } from '@/lib/client/store';
 import { toast } from '@/lib/client/toast';
 import type { RunTaskResponse } from '@/lib/ai/contracts';
@@ -74,8 +74,8 @@ export default function AppealsPage() {
         <PageHeader title="مولد الاستئناف" description="صياغة استئناف رسمي بالعربية والإنجليزية جاهز للتقديم اليدوي." />
         <EmptyState
           icon={FileText}
-          title="لا قضايا متاحة"
-          description="أنشئ قضية أولًا لتوليد استئناف لها."
+          title="ما فيه قضايا"
+          description="أضف قضية أول، وبعدها نكتب لك الاستئناف."
           action={
             <Link href="/new-case" className="btn-primary">
               قضية جديدة
@@ -90,14 +90,14 @@ export default function AppealsPage() {
     <AppShell>
       <PageHeader
         title="مولد الاستئناف"
-        description="استئناف رسمي مبني على الوقائع والأدلة فقط — لا تقديم آلي، القرار النهائي للمالك."
+        description="الاستئناف ينكتب عربي وإنجليزي من بيانات القضية. راجعه، عدّل عليه، وبعدها قدّمه بنفسك من صفحة قوقل."
         actions={
           selected ? (
             <TaskRunner
               taskId="appeal-generation"
               input={caseTaskInput(selected)}
               caseCode={selected.code}
-              label="توليد استئناف جديد"
+              label="اكتب استئناف جديد"
               onComplete={onGenerated}
             />
           ) : null
@@ -166,7 +166,7 @@ export default function AppealsPage() {
               <textarea
                 value={ar}
                 onChange={(e) => setAr(e.target.value)}
-                placeholder="سيظهر هنا نص الاستئناف العربي بعد التوليد — يمكنك تعديله يدويًا."
+                placeholder="نص الاستئناف العربي بيطلع هنا — تقدر تعدّل عليه براحتك."
                 className="min-h-[320px] flex-1 resize-none bg-transparent p-4 text-[13px] leading-relaxed text-slate-200 placeholder:text-slate-600 focus:outline-none"
               />
               <footer className="flex items-center justify-between border-t border-line/60 px-4 py-2.5">

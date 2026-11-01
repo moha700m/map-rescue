@@ -1,29 +1,43 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Building2, Check, CircleCheck, ClipboardCheck, Sparkles, Store, User } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  CircleCheck,
+  ClipboardCheck,
+  Loader2,
+  Sparkles,
+  Store,
+  User,
+  Wand2,
+} from 'lucide-react';
 import AppShell from '@/components/AppShell';
-import TaskRunner from '@/components/ai/TaskRunner';
-import { Field, PageHeader } from '@/components/ui/primitives';
+import { Field, PageHeader, StatusBadge } from '@/components/ui/primitives';
 import { COUNTRY_META } from '@/lib/constants';
 import { newCaseDraft, upsertCase } from '@/lib/client/store';
+import { getHealth } from '@/lib/client/ai';
+import { runCasePipeline, readSuspensionMessage, suggestCategory, type PipelineEvent } from '@/lib/client/pipeline';
 import { toast } from '@/lib/client/toast';
-import { caseTaskInput } from '@/components/cases/CaseDetail';
 import type { CaseRecord } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const STEPS = [
-  { id: 1, label: 'العميل والنشاط', icon: User },
-  { id: 2, label: 'تفاصيل التعليق', icon: ClipboardCheck },
-  { id: 3, label: 'المراجعة والإنشاء', icon: Check },
+  { id: 1, label: 'النشاط والعميل', icon: User },
+  { id: 2, label: 'رسالة قوقل', icon: ClipboardCheck },
+  { id: 3, label: 'راجع واحفظ', icon: Check },
 ];
 
 export default function NewCasePage() {
-  const router = useRouter();
   const [step, setStep] = useState(1);
   const [saved, setSaved] = useState<CaseRecord | null>(null);
+  const [events, setEvents] = useState<PipelineEvent[]>([]);
+  const [autoRunning, setAutoRunning] = useState(false);
+  const [autoDone, setAutoDone] = useState(false);
+  const categoryTouched = useRef(false);
+
   const [form, setForm] = useState(() => {
     const draft = newCaseDraft();
     return {
@@ -38,7 +52,7 @@ export default function NewCasePage() {
       phone: '',
       suspensionDate: '',
       suspensionMessage: '',
-      previousAppeals: 'لا يوجد',
+      previousAppeals: 'ما فيه',
       isStorefront: true,
       customersVisit: true,
       hasSignage: false,
@@ -51,20 +65,30 @@ export default function NewCasePage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  const read = useMemo(() => (form.suspensionMessage ? readSuspensionMessage(form.suspensionMessage) : null), [form.suspensionMessage]);
+
   const errors = useMemo(() => {
     const e: Record<string, string> = {};
-    if (step >= 1) {
-      if (!form.businessName.trim()) e.businessName = 'اسم النشاط مطلوب';
-      if (!form.customerName.trim()) e.customerName = 'اسم العميل مطلوب';
-      if (!form.category.trim()) e.category = 'الفئة مطلوبة';
-      if (!form.city.trim()) e.city = 'المدينة مطلوبة';
-    }
+    if (!form.businessName.trim()) e.businessName = 'اكتب اسم النشاط';
+    if (!form.customerName.trim()) e.customerName = 'اكتب اسم العميل';
+    if (!form.category.trim()) e.category = 'اكتب الفئة';
+    if (!form.city.trim()) e.city = 'اكتب المدينة';
     return e;
-  }, [form, step]);
+  }, [form]);
 
   const canNext = Object.keys(errors).length === 0;
 
-  function createCase() {
+  function applySuggestion() {
+    if (!read) return;
+    setForm((prev) => ({
+      ...prev,
+      ...read.suggest,
+      isStorefront: read.suggest.isStorefront ?? prev.isStorefront,
+    }));
+    toast('طبّقنا الاقتراحات', { description: 'عدّلها لو ما تناسب الواقع', tone: 'info' });
+  }
+
+  async function createCase() {
     const record: CaseRecord = {
       ...form.draft,
       customerName: form.customerName.trim(),
@@ -84,57 +108,128 @@ export default function NewCasePage() {
       hasSignage: form.hasSignage,
       fee: form.fee,
     };
-    const saved = upsertCase(record);
-    setSaved(saved);
-    toast('تم إنشاء القضية', { description: saved.code, tone: 'success' });
+    const savedCase = upsertCase(record);
+    setSaved(savedCase);
+    toast('انفتحت القضية', { description: savedCase.code, tone: 'success' });
+
+    // Automatic mode: if a key exists, start working immediately.
+    const health = await getHealth().catch(() => null);
+    if (!health?.key.present) return;
+
+    setAutoRunning(true);
+    try {
+      const res = await runCasePipeline(savedCase, {
+        onEvent: (e) => setEvents((prev) => [...prev, e]),
+      });
+      setSaved(res.record);
+      setAutoDone(true);
+      toast(res.ok ? 'خلصنا التحليل تلقائي' : 'توقفنا في النص', {
+        description: res.ok ? 'التشخيص والاستئناف جاهزين تحت' : 'راجع السجل',
+        tone: res.ok ? 'success' : 'error',
+      });
+    } finally {
+      setAutoRunning(false);
+    }
   }
 
   if (saved) {
     return (
       <AppShell>
-        <PageHeader title="تم إنشاء القضية" description="القضية محفوظة محليًا في مساحة العمل. الخطوة التالية: التشخيص بالذكاء الاصطناعي." />
-        <div className="mx-auto max-w-2xl">
-          <div className="card p-6 text-center">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-mint-500/12 text-mint-400">
-              <CircleCheck size={26} />
-            </span>
-            <h2 className="mt-4 text-lg font-bold text-white">{saved.businessName}</h2>
-            <p className="num mt-1 text-xs text-brand-300">{saved.code}</p>
-            <div className="mt-5 grid gap-2 text-start sm:grid-cols-2">
+        <PageHeader
+          title="انفتحت القضية"
+          description={autoRunning ? 'الذكاء يشتغل عليها الحين — لا تسكّر الصفحة.' : 'كل شي محفوظ. تقدر تروح للقضية أو تضيف غيرها.'}
+        />
+        <div className="mx-auto max-w-2xl space-y-3">
+          <div className="card p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-white">{saved.businessName}</h2>
+                <p className="num mt-0.5 text-xs text-brand-300">{saved.code}</p>
+              </div>
+              <StatusBadge status={saved.status} />
+            </div>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
               <div className="rounded-xl border border-line/70 bg-ink-900/50 p-3">
                 <p className="text-[10px] text-slate-500">العميل</p>
                 <p className="text-xs text-slate-200">{saved.customerName}</p>
               </div>
               <div className="rounded-xl border border-line/70 bg-ink-900/50 p-3">
-                <p className="text-[10px] text-slate-500">الموقع</p>
+                <p className="text-[10px] text-slate-500">المكان</p>
                 <p className="text-xs text-slate-200">
                   {saved.city} — {COUNTRY_META[saved.country]?.label}
                 </p>
               </div>
             </div>
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              <TaskRunner
-                taskId="gbp-diagnosis"
-                input={caseTaskInput(saved)}
-                caseCode={saved.code}
-                label="تشغيل التشخيص الآن"
-              />
-              <Link href="/customers" className="btn-ghost">
-                عرض القضايا
+
+            {autoRunning ? (
+              <div className="mt-4 rounded-xl border border-brand-500/30 bg-brand-500/[0.07] p-3">
+                <p className="flex items-center gap-2 text-xs font-bold text-brand-200">
+                  <Loader2 size={13} className="animate-spin" /> نشغّل كل شي تلقائي…
+                </p>
+                <ul className="mt-2 space-y-1">
+                  {events.map((e) => (
+                    <li key={e.id} className="flex items-center gap-2 text-[11px] text-slate-300">
+                      {e.status === 'ok' ? <Check size={11} className="text-mint-400" /> : e.status === 'fail' ? <span className="text-rosex-400">!</span> : <Loader2 size={11} className="animate-spin text-slate-500" />}
+                      {e.title}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {autoDone ? (
+              <div className="mt-4 space-y-2">
+                {saved.diagnosis ? (
+                  <div className="rounded-xl border border-mint-500/25 bg-mint-500/[0.06] p-3">
+                    <p className="text-[10px] font-bold text-mint-300">السبب الأرجح</p>
+                    <p className="mt-1 text-xs font-semibold text-white">{saved.diagnosis.rootCause.label}</p>
+                    <p className="mt-0.5 text-[10px] text-slate-400">
+                      ثقة {saved.diagnosis.confidence}% · {saved.diagnosis.recoveryPlan.length} خطوات
+                    </p>
+                  </div>
+                ) : null}
+                {saved.appealAr ? (
+                  <div className="rounded-xl border border-line/70 bg-ink-900/60 p-3">
+                    <p className="text-[10px] font-bold text-slate-500">الاستئناف الجاهز</p>
+                    <p className="mt-1 line-clamp-4 text-[11px] leading-relaxed text-slate-300">{saved.appealAr}</p>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link href="/customers" className="btn-primary">
+                افتح القضايا
+              </Link>
+              <Link href="/appeals" className="btn-ghost">
+                راجع الاستئناف
               </Link>
               <button
                 type="button"
                 className="btn-subtle"
                 onClick={() => {
                   setSaved(null);
+                  setEvents([]);
+                  setAutoDone(false);
                   setStep(1);
-                  setForm((prev) => ({ ...prev, draft: newCaseDraft(), businessName: '', customerName: '' }));
+                  categoryTouched.current = false;
+                  setForm((prev) => ({ ...prev, draft: newCaseDraft(), businessName: '', customerName: '', category: '', suspensionMessage: '' }));
                 }}
               >
-                إضافة قضية أخرى
+                قضية ثانية
               </button>
             </div>
           </div>
+          {!autoRunning && !autoDone ? (
+            <p className="text-center text-[11px] text-slate-500">
+              ما شغّلنا التحليل لأن ما فيه مفتاح. أضفه من{' '}
+              <Link href="/settings/ai" className="link">
+                إعدادات الذكاء
+              </Link>{' '}
+              وبعدها افتح القضية واضغط «شغّل كل شي».
+            </p>
+          ) : null}
         </div>
       </AppShell>
     );
@@ -143,8 +238,8 @@ export default function NewCasePage() {
   return (
     <AppShell>
       <PageHeader
-        title="قضية استرداد جديدة"
-        description="أدخل بيانات النشاط والتعليق بدقة — جودة المدخلات تحدد جودة التشخيص."
+        title="قضية جديدة"
+        description="عبّ ثلاث خطوات بس، والباقي علينا. كل ما تعطي معلومات أدق، التشخيص يطلع أضبط."
         actions={
           <Link href="/customers" className="btn-ghost">
             <ArrowRight size={15} /> رجوع للقضايا
@@ -165,11 +260,7 @@ export default function NewCasePage() {
                   onClick={() => (done ? setStep(s.id) : undefined)}
                   className={cn(
                     'flex flex-1 items-center gap-2 rounded-xl border px-3 py-2.5 text-start transition-colors',
-                    active
-                      ? 'border-brand-500/40 bg-brand-500/[0.08]'
-                      : done
-                        ? 'border-mint-500/25 bg-mint-500/[0.05]'
-                        : 'border-line bg-ink-900/40',
+                    active ? 'border-brand-500/40 bg-brand-500/[0.08]' : done ? 'border-mint-500/25 bg-mint-500/[0.05]' : 'border-line bg-ink-900/40',
                   )}
                 >
                   <span
@@ -181,10 +272,8 @@ export default function NewCasePage() {
                     {done ? <Check size={13} /> : <Icon size={13} />}
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-[10px] text-slate-500">الخطوة {s.id}</span>
-                    <span className={cn('block truncate text-xs font-semibold', active || done ? 'text-slate-100' : 'text-slate-400')}>
-                      {s.label}
-                    </span>
+                    <span className="block text-[10px] text-slate-500">خطوة {s.id}</span>
+                    <span className={cn('block truncate text-xs font-semibold', active || done ? 'text-slate-100' : 'text-slate-400')}>{s.label}</span>
                   </span>
                 </button>
                 {i < STEPS.length - 1 ? <span className="h-px w-3 bg-line" /> : null}
@@ -197,16 +286,36 @@ export default function NewCasePage() {
           {step === 1 ? (
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="اسم العميل" required error={errors.customerName}>
-                <input className="input" value={form.customerName} onChange={(e) => set('customerName', e.target.value)} placeholder="مثال: سارة العتيبي" />
+                <input className="input" value={form.customerName} onChange={(e) => set('customerName', e.target.value)} placeholder="مثال: سارة العتيبي" autoComplete="off" />
               </Field>
-              <Field label="رقم الهاتف">
+              <Field label="جوال العميل">
                 <input className="input" dir="ltr" value={form.customerPhone} onChange={(e) => set('customerPhone', e.target.value)} placeholder="+966 5x xxx xxxx" />
               </Field>
-              <Field label="اسم النشاط التجاري" required error={errors.businessName}>
-                <input className="input" value={form.businessName} onChange={(e) => set('businessName', e.target.value)} placeholder="كما هو في السجل التجاري" />
+              <Field label="اسم النشاط" required error={errors.businessName} hint="نفس اللي في السجل التجاري">
+                <input
+                  className="input"
+                  value={form.businessName}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    set('businessName', value);
+                    if (!categoryTouched.current) {
+                      const guess = suggestCategory(value);
+                      if (guess) set('category', guess);
+                    }
+                  }}
+                  placeholder="مثال: مطعم بيت المندي"
+                />
               </Field>
-              <Field label="فئة النشاط" required error={errors.category}>
-                <input className="input" value={form.category} onChange={(e) => set('category', e.target.value)} placeholder="مطعم / صالون / عيادة…" />
+              <Field label="فئة النشاط" required error={errors.category} hint={form.category ? 'عدّلها لو ما هي بالضبط' : 'بتنعبّى تلقائي من اسم النشاط'}>
+                <input
+                  className="input"
+                  value={form.category}
+                  onChange={(e) => {
+                    categoryTouched.current = true;
+                    set('category', e.target.value);
+                  }}
+                  placeholder="مطعم / صالون / عيادة…"
+                />
               </Field>
               <Field label="المدينة" required error={errors.city}>
                 <input className="input" value={form.city} onChange={(e) => set('city', e.target.value)} placeholder="الرياض" />
@@ -220,13 +329,13 @@ export default function NewCasePage() {
                   ))}
                 </select>
               </Field>
-              <Field label="العنوان الكامل" className="sm:col-span-2" hint="يجب أن يطابق السجل التجاري حرفيًا بما فيه رقم الوحدة">
-                <input className="input" value={form.address} onChange={(e) => set('address', e.target.value)} placeholder="الحي، الشارع، رقم المبنى، الوحدة" />
+              <Field label="العنوان كامل" className="sm:col-span-2" hint="الحي + الشارع + رقم المبنى + رقم الوحدة">
+                <input className="input" value={form.address} onChange={(e) => set('address', e.target.value)} placeholder="حي النرجس، طريق أنس بن مالك، مبنى 4412 — وحدة 4" />
               </Field>
               <Field label="الموقع الإلكتروني">
                 <input className="input" dir="ltr" value={form.website} onChange={(e) => set('website', e.target.value)} placeholder="https://" />
               </Field>
-              <Field label="هاتف النشاط">
+              <Field label="جوال النشاط">
                 <input className="input" dir="ltr" value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="+966 11 xxx xxxx" />
               </Field>
             </div>
@@ -234,35 +343,59 @@ export default function NewCasePage() {
 
           {step === 2 ? (
             <div className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="تاريخ التعليق">
-                  <input type="date" className="input" value={form.suspensionDate} onChange={(e) => set('suspensionDate', e.target.value)} />
-                </Field>
-                <Field label="الاستئنافات السابقة">
-                  <select className="select" value={form.previousAppeals} onChange={(e) => set('previousAppeals', e.target.value)}>
-                    <option>لا يوجد</option>
-                    <option>استئناف واحد مرفوض</option>
-                    <option>استئنافان مرفوضان</option>
-                    <option>ثلاثة أو أكثر</option>
-                  </select>
-                </Field>
-              </div>
-              <Field label="نص رسالة التعليق من Google" hint="انسخ الرسالة كما وردت في البريد أو لوحة التحكم — لا تعِد صياغتها">
+              <Field
+                label="رسالة قوقل (انسخها زي ما هي)"
+                hint="مو لازم تفهمها — الذكاء يقراها ويقول لك وش المشكلة"
+              >
                 <textarea
                   className="input min-h-[110px] resize-y"
                   value={form.suspensionMessage}
                   onChange={(e) => set('suspensionMessage', e.target.value)}
-                  placeholder="مثال: Your Business Profile has been suspended due to quality issues…"
+                  placeholder="Your Business Profile has been suspended due to quality issues…"
                 />
               </Field>
 
+              {read ? (
+                <div className="rounded-xl border border-brand-500/25 bg-brand-500/[0.06] p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="flex items-center gap-1.5 text-[10px] font-bold text-brand-300">
+                      <Wand2 size={11} /> قرينا الرسالة
+                    </p>
+                    <button type="button" className="btn-ghost btn-sm" onClick={applySuggestion}>
+                      طبّق الاقتراحات
+                    </button>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {read.flags.length ? read.flags.map((f) => <span key={f} className="badge-rose">{f}</span>) : <span className="badge-muted">التعليق عام</span>}
+                    <span className={read.severity === 'high' ? 'badge-rose' : 'badge-amber'}>
+                      خطورة {read.severity === 'high' ? 'عالية' : read.severity === 'medium' ? 'متوسطة' : 'منخفضة'}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-[11px] leading-relaxed text-slate-300">{read.hint}</p>
+                </div>
+              ) : null}
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="تاريخ التعليق (اختياري)">
+                  <input type="date" className="input" value={form.suspensionDate} onChange={(e) => set('suspensionDate', e.target.value)} />
+                </Field>
+                <Field label="استئنفت قبل؟">
+                  <select className="select" value={form.previousAppeals} onChange={(e) => set('previousAppeals', e.target.value)}>
+                    <option>ما فيه</option>
+                    <option>استئناف واحد وانرفض</option>
+                    <option>استئنافين وانرفضوا</option>
+                    <option>ثلاثة وأكثر</option>
+                  </select>
+                </Field>
+              </div>
+
               <div className="rounded-xl border border-line bg-ink-900/40 p-3.5">
-                <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-500">خصائص الموقع</p>
+                <p className="mb-2.5 text-[11px] font-bold text-slate-400">النشاط وش وضعه؟</p>
                 <div className="grid gap-2 sm:grid-cols-3">
                   {[
-                    { key: 'isStorefront' as const, label: 'يوجد محل فعلي', icon: Store },
-                    { key: 'customersVisit' as const, label: 'يستقبل عملاء', icon: Building2 },
-                    { key: 'hasSignage' as const, label: 'لافتة دائمة', icon: Sparkles },
+                    { key: 'isStorefront' as const, label: 'فيه محل', icon: Store },
+                    { key: 'customersVisit' as const, label: 'يستقبل عملاء', icon: User },
+                    { key: 'hasSignage' as const, label: 'فيه لافتة', icon: Sparkles },
                   ].map((opt) => {
                     const active = form[opt.key];
                     return (
@@ -293,7 +426,7 @@ export default function NewCasePage() {
           {step === 3 ? (
             <div className="space-y-3">
               <div className="rounded-xl border border-brand-500/25 bg-brand-500/[0.06] p-3.5">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-brand-300">ملخص القضية</p>
+                <p className="text-[10px] font-bold text-brand-300">ملخص سريع</p>
                 <p className="mt-1 text-sm font-bold text-white">{form.businessName || '—'}</p>
                 <p className="text-xs text-slate-400">
                   {form.category} · {form.city} · {COUNTRY_META[form.country]?.label}
@@ -302,9 +435,9 @@ export default function NewCasePage() {
               <dl className="grid gap-2 sm:grid-cols-2">
                 {[
                   ['العميل', form.customerName],
-                  ['الهاتف', form.customerPhone],
+                  ['الجوال', form.customerPhone],
                   ['العنوان', form.address],
-                  ['الاستئنافات السابقة', form.previousAppeals],
+                  ['استئنف قبل؟', form.previousAppeals],
                   ['تاريخ التعليق', form.suspensionDate],
                   ['الأتعاب', `$${form.fee}`],
                 ].map(([label, value]) => (
@@ -317,26 +450,26 @@ export default function NewCasePage() {
                 ))}
               </dl>
               <div className="rounded-lg border border-line/60 bg-ink-900/50 p-3">
-                <p className="text-[10px] text-slate-500">رسالة التعليق</p>
-                <p className="mt-1 text-xs leading-relaxed text-slate-300">{form.suspensionMessage || 'لم تُدخل'}</p>
+                <p className="text-[10px] text-slate-500">رسالة قوقل</p>
+                <p className="mt-1 text-xs leading-relaxed text-slate-300">{form.suspensionMessage || 'ما كتبتها'}</p>
               </div>
-              <p className="text-[10px] leading-relaxed text-slate-500">
-                بالتأكيد أنت تنشئ قضية داخلية فقط. النظام لا يقدّم أي استئناف تلقائيًا ولا يتصل بحساب Google دون موافقة المالك.
+              <p className="rounded-lg border border-mint-500/25 bg-mint-500/[0.06] p-2.5 text-[11px] leading-relaxed text-mint-200">
+                بمجرد ما تحفظ، بنشغّل التشخيص والاستئناف والتوصيات تلقائي — إذا كان مفتاح OpenRouter مضبوط.
               </p>
             </div>
           ) : null}
 
           <div className="mt-5 flex items-center justify-between gap-2 border-t border-line/60 pt-4">
             <button type="button" className="btn-subtle" onClick={() => setStep((s) => Math.max(1, s - 1))} disabled={step === 1}>
-              <ArrowRight size={15} /> السابق
+              <ArrowRight size={15} /> رجوع
             </button>
             {step < 3 ? (
-              <button type="button" className="btn-primary" onClick={() => setStep((s) => Math.min(3, s + 1))} disabled={!canNext}>
+              <button type="button" className="btn-primary" onClick={() => setStep((s) => Math.min(3, s + 1))} disabled={!canNext || (step === 1 && !canNext)}>
                 التالي <ArrowLeft size={15} />
               </button>
             ) : (
               <button type="button" className="btn-primary" onClick={createCase} disabled={!canNext}>
-                <Check size={15} /> إنشاء القضية
+                <CircleCheck size={15} /> احفظ وخلّه يشتغل
               </button>
             )}
           </div>

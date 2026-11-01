@@ -52,9 +52,9 @@ import { cn, formatDateTime, formatTokens, formatUsd, timeAgo } from '@/lib/util
 type TabKey = 'connection' | 'models' | 'usage' | 'history' | 'errors' | 'budget';
 
 const TAB_LIST: { value: TabKey; label: string; icon: typeof KeyRound }[] = [
-  { value: 'connection', label: 'الاتصال', icon: KeyRound },
+  { value: 'connection', label: 'المفتاح', icon: KeyRound },
   { value: 'models', label: 'النماذج', icon: Layers },
-  { value: 'usage', label: 'الاستخدام', icon: Activity },
+  { value: 'usage', label: 'المصاريف', icon: Activity },
   { value: 'history', label: 'سجل الطلبات', icon: History },
   { value: 'errors', label: 'الأخطاء', icon: AlertOctagon },
   { value: 'budget', label: 'الميزانية', icon: Wallet },
@@ -186,7 +186,7 @@ export default function AiSettingsPage() {
       <PageHeader
         eyebrow="AI gateway · openrouter"
         title="إعدادات الذكاء الاصطناعي"
-        description="المصدر الوحيد لكل عمليات AI: الاتصال، النماذج، التوجيه، الاستخدام، التكلفة، والسجل — دون إعادة نشر."
+        description="هنا تظبط الذكاء: المفتاح، النموذج، ووين يروح كل طلب. أي تغيير يشتغل على طول بدون ما تعيد نشر الموقع."
         actions={
           <>
             <button type="button" className="btn-ghost" onClick={() => refresh(true)}>
@@ -574,7 +574,7 @@ export default function AiSettingsPage() {
               </div>
             </SectionCard>
 
-            <SectionCard title="الميزانية الشهرية" description={`${formatUsd(usage?.budget.spentUsd ?? 0)} من ${formatUsd(usage?.budget.monthlyBudgetUsd ?? 0)}`}>
+            <SectionCard title="حد الصرف الشهري" description={`${formatUsd(usage?.budget.spentUsd ?? 0)} من ${formatUsd(usage?.budget.monthlyBudgetUsd ?? 0)}`}>
               <div className="flex items-center gap-4">
                 <Ring value={budgetPct} size={92} tone={budgetPct > 85 ? 'rose' : budgetPct > 60 ? 'amber' : 'brand'} sublabel="مستخدم" />
                 <div className="flex-1 space-y-2">

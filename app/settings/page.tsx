@@ -41,7 +41,7 @@ export default function SettingsPage() {
     <AppShell>
       <PageHeader
         title="إعدادات النظام"
-        description="حالة التشغيل، التخزين، وأدوات إدارة البيانات."
+        description="كل شي تقني هنا: وضع التشغيل، بياناتك، والمتغيرات."
         actions={
           <Link href="/settings/ai" className="btn-primary">
             <BrainCircuit size={15} /> إعدادات الذكاء الاصطناعي
@@ -69,7 +69,7 @@ export default function SettingsPage() {
           </dl>
         </SectionCard>
 
-        <SectionCard title="إدارة البيانات" description="مساحة العمل محلية بالكامل في هذا المتصفح">
+        <SectionCard title="بياناتك" description="كل شي محفوظ في هذا المتصفح — ما يطلع لأي مكان">
           <div className="mb-3 grid grid-cols-2 gap-2">
             <div className="rounded-xl border border-line/70 bg-ink-900/50 p-3">
               <p className="text-[10px] text-slate-500">القضايا</p>
@@ -90,10 +90,10 @@ export default function SettingsPage() {
                 className="btn-ghost btn-sm"
                 onClick={() => {
                   resetDemo();
-                  toast('تمت إعادة تعيين بيانات المعاينة', { tone: 'success' });
+                  toast('رجعت البيانات التجريبية', { tone: 'success' });
                 }}
               >
-                <RotateCcw size={12} /> إعادة تعيين المعاينة
+                <RotateCcw size={12} /> رجّع البيانات التجريبية
               </button>
             ) : null}
             <button
@@ -115,7 +115,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="mt-3 grid gap-3 lg:grid-cols-2">
-        <SectionCard title="قواعد التشغيل" description="غير قابلة للتعطيل من الواجهة">
+        <SectionCard title="قواعدنا" description="ثابتة، ما تتغيّر من الواجهة">
           <ul className="space-y-2 text-[11px] text-slate-300">
             {[
               'لا يُقدَّم أي استئناف تلقائيًا — التقديم يدوي بموافقة المالك.',

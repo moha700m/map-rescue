@@ -7,7 +7,7 @@ import ModelSelect from '@/components/ai/ModelSelect';
 import ResultView from '@/components/ai/ResultView';
 import { AI_TASKS, type AiTaskId } from '@/lib/ai/tasks';
 import type { Attachment } from '@/lib/ai/messages';
-import type { ModelInfo } from '@/lib/ai/models';
+import { pickModelForTask, type ModelInfo } from '@/lib/ai/models';
 import type { RunTaskResponse } from '@/lib/ai/contracts';
 import { fetchSettings, listModels, runTask } from '@/lib/client/ai';
 import { toast } from '@/lib/client/toast';
@@ -48,7 +48,7 @@ export default function TaskRunner({
     try {
       const [catalog, settings] = await Promise.all([listModels(), fetchSettings()]);
       setModels(catalog.models);
-      setModel((prev) => prev || settings.taskModels[taskId] || settings.defaultModel);
+      setModel((prev) => prev || pickModelForTask(AI_TASKS[taskId], catalog.models, settings));
     } catch {
       /* ignore */
     } finally {

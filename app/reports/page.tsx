@@ -6,7 +6,7 @@ import AppShell from '@/components/AppShell';
 import TaskRunner from '@/components/ai/TaskRunner';
 import { EmptyState, Field, PageHeader, SectionCard, Stat, StatusBadge } from '@/components/ui/primitives';
 import { HBar, Ring } from '@/components/ui/charts';
-import { caseTaskInput } from '@/components/cases/CaseDetail';
+import { caseTaskInput } from '@/lib/case-input';
 import { useCases } from '@/lib/client/store';
 import { STATUS_META, STATUS_ORDER, COUNTRY_META } from '@/lib/constants';
 import type { RunTaskResponse } from '@/lib/ai/contracts';
@@ -69,10 +69,10 @@ export default function ReportsPage() {
     <AppShell>
       <PageHeader
         title="التقارير"
-        description="مؤشرات الأداء، وتوليد تقرير عميل جاهز للإرسال عبر OpenRouter."
+        description="أرقامك بسرعة، وتقرير جاهز ترسله للعميل بدون ما تكتب شي."
         actions={
           selected ? (
-            <TaskRunner taskId="customer-report" input={caseTaskInput(selected)} caseCode={selected.code} label="توليد تقرير العميل" onComplete={onReport} />
+            <TaskRunner taskId="customer-report" input={caseTaskInput(selected)} caseCode={selected.code} label="اكتب تقرير للعميل" onComplete={onReport} />
           ) : null
         }
       />
@@ -124,7 +124,7 @@ export default function ReportsPage() {
 
         <SectionCard
           title="تقرير العميل"
-          description="يُولَّد بالعربية بنبرة واضحة وغير تقنية"
+          description="عربي واضح، بدون مصطلحات، جاهز ترسله واتساب"
           action={
             report ? (
               <button type="button" className="btn-ghost btn-sm" onClick={download}>
