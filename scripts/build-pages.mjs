@@ -36,6 +36,7 @@ const result = spawnSync('npx', ['next', 'build'], {
     PAGES_BASE_PATH: basePath,
     NEXT_PUBLIC_BASE_PATH: basePath,
     NEXT_PUBLIC_DEMO_DATA: '1',
+    NEXT_PUBLIC_STATIC_EXPORT: '1',
     NEXT_PUBLIC_APP_URL: `https://moha700m.github.io${basePath}`,
   },
 });

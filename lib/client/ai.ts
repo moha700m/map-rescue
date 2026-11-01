@@ -63,6 +63,9 @@ function maskKey(key: string) {
 let healthPromise: Promise<AiHealth> | null = null;
 
 async function probe(): Promise<AiHealth> {
+  // Static export has no route handlers — skip the doomed HTTP probe entirely.
+  if (process.env.NEXT_PUBLIC_STATIC_EXPORT === '1') return directHealth();
+
   try {
     const res = await fetch(withBase('/api/ai/health'), {
       headers: { Accept: 'application/json' },
@@ -78,6 +81,10 @@ async function probe(): Promise<AiHealth> {
     /* fall through to direct mode */
   }
 
+  return directHealth();
+}
+
+function directHealth(): AiHealth {
   const key = getLocalKey();
   return {
     ok: true,

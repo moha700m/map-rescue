@@ -129,8 +129,12 @@ export function makeDoc(partial: Partial<EvidenceDoc> & { name: string; mimeType
 /* React bindings                                                      */
 /* ------------------------------------------------------------------ */
 
-function useStoreValue<T>(selector: () => T, deps: unknown[] = []): T {
-  const [value, setValue] = useState<T>(selector);
+/**
+ * Reads from localStorage after mount only. The first client render must match
+ * the server-rendered HTML (which has no stored data) to avoid hydration errors.
+ */
+function useStoreValue<T>(selector: () => T, empty: T): T {
+  const [value, setValue] = useState<T>(empty);
 
   useEffect(() => {
     const update = () => setValue(selector());
@@ -142,7 +146,7 @@ function useStoreValue<T>(selector: () => T, deps: unknown[] = []): T {
       window.removeEventListener('storage', update);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  }, []);
 
   return value;
 }

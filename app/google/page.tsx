@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { BadgeCheck, CircleAlert, ExternalLink, KeyRound, Plug, RefreshCw, Satellite } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import { PageHeader, SectionCard } from '@/components/ui/primitives';
+import { withBase } from '@/lib/utils';
 
 const SOURCES = [
   { tone: 'text-mint-400', label: 'بيانات حية', desc: 'من Google Business Profile APIs بعد الموافقة على المشروع.' },
@@ -17,8 +18,10 @@ export default function GooglePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/google/connect', { redirect: 'manual' })
-      .then(() => setServerMode(true))
+    // Probe the JSON health endpoint instead of the redirecting OAuth route,
+    // so a static build doesn't emit a failed request.
+    fetch(withBase('/api/ai/health'), { headers: { Accept: 'application/json' } })
+      .then((res) => setServerMode(res.ok && (res.headers.get('content-type') || '').includes('json')))
       .catch(() => setServerMode(false));
   }, []);
 
@@ -78,7 +81,7 @@ export default function GooglePage() {
                   : 'المسار متاح على الخادم؛ يتطلب ضبط متغيرات Google.'}
               </p>
             </div>
-            <a href="/api/google/connect" className="btn-primary w-full justify-center">
+            <a href="/api/google/connect" className="btn-primary w-full justify-center" aria-disabled={serverMode === false}>
               <Plug size={15} /> ربط حساب Google
             </a>
             <div className="grid grid-cols-2 gap-2">
