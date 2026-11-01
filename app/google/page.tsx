@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { BadgeCheck, CircleAlert, ExternalLink, KeyRound, Plug, RefreshCw, Satellite } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import { PageHeader, SectionCard } from '@/components/ui/primitives';
-import { withBase } from '@/lib/utils';
+import { getHealth } from '@/lib/client/ai';
 
 const SOURCES = [
   { tone: 'text-mint-400', label: 'بيانات حية', desc: 'من Google Business Profile APIs بعد الموافقة على المشروع.' },
@@ -18,10 +18,10 @@ export default function GooglePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Probe the JSON health endpoint instead of the redirecting OAuth route,
-    // so a static build doesn't emit a failed request.
-    fetch(withBase('/api/ai/health'), { headers: { Accept: 'application/json' } })
-      .then((res) => setServerMode(res.ok && (res.headers.get('content-type') || '').includes('json')))
+    // Resolve the runtime mode through the shared client so a static build
+    // never issues a doomed /api request.
+    getHealth()
+      .then((h) => setServerMode(h.mode === 'server'))
       .catch(() => setServerMode(false));
   }, []);
 
