@@ -1,6 +1,9 @@
 node_modules/
 .next/
+out/
+.data/
 .env.local
 .env
 *.log
 .DS_Store
+.api-stash/
