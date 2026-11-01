@@ -77,11 +77,13 @@ npm run build && npm start
 
 Set `OPENROUTER_API_KEY`, `AI_CONFIG_SECRET`, and optionally `AI_STORAGE=supabase` + Supabase keys. Run `supabase/ai_schema.sql` first.
 
-**GitHub Pages (static preview):**
+**GitHub Pages (live demo):**
 
 ```bash
-npm run build:pages     # → ./out
+npm run build:pages     # → ./out  (basePath: /map-rescue)
 ```
+
+Live: https://moha700m.github.io/map-rescue/
 
 The static build runs in *direct* mode: requests go from the browser to OpenRouter with a key stored in that browser only. It exists so the interface can be reviewed without a server; keep production on a server build.
 

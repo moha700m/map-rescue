@@ -15,7 +15,7 @@ import path from 'node:path';
 const root = process.cwd();
 const apiDir = path.join(root, 'app', 'api');
 const stash = path.join(root, '.api-stash');
-const basePath = process.env.PAGES_BASE_PATH ?? '/map-rescue-ai';
+const basePath = process.env.PAGES_BASE_PATH ?? '/map-rescue';
 
 function move(from, to) {
   if (fs.existsSync(from)) fs.renameSync(from, to);
