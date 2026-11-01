@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
+  Copy,
+  Link2,
   ArrowLeft,
   BrainCircuit,
   CheckCircle2,
@@ -29,6 +31,7 @@ export default function DashboardPage() {
   const [usage, setUsage] = useState<UsagePayload | null>(null);
   const [hasKey, setHasKey] = useState<boolean | null>(null);
   const [selected, setSelected] = useState<CaseRecord | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchUsage(14).then(setUsage).catch(() => undefined);
@@ -141,6 +144,28 @@ export default function DashboardPage() {
             </span>
           </Link>
         ))}
+      </div>
+
+      <div className="mb-3 flex flex-col gap-2.5 rounded-2xl border border-brand-500/25 bg-brand-500/[0.06] p-3 sm:flex-row sm:items-center">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-brand-500/30 bg-brand-500/10 text-brand-300">
+          <Link2 size={16} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[12px] font-bold text-white">رابط طلب العميل</p>
+          <p className="truncate text-[11px] text-slate-400">ارسله للعميل يعبّيه بنفسه — بدون كلمة مرور ولا تعقيد.</p>
+        </div>
+        <button
+          type="button"
+          className="btn-ghost btn-sm shrink-0"
+          onClick={async () => {
+            const url = `${window.location.origin}${window.location.pathname.replace(/\/$/, '')}/start/`;
+            await navigator.clipboard.writeText(url);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1800);
+          }}
+        >
+          <Copy size={12} /> {copied ? 'تم النسخ' : 'انسخ الرابط'}
+        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
