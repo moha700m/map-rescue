@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronsUpDown, FileText, ImageIcon, Search, Sparkles, X } from 'lucide-react';
 import type { ModelInfo } from '@/lib/ai/models';
 import { findModel, pricePerMillion, providerOf, PROVIDER_LABEL, contextLabel } from '@/lib/ai/models';
@@ -29,6 +29,19 @@ export default function ModelSelect({
   const [onlyFile, setOnlyFile] = useState(false);
 
   const selected = findModel(models, value);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setOpen(false);
+        setQuery('');
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
