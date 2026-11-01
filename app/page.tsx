@@ -17,7 +17,9 @@ import AppShell from '@/components/AppShell';
 import CaseDetail from '@/components/cases/CaseDetail';
 import { EmptyState, PageHeader, RiskBadge, SectionCard, Stat, StatusBadge } from '@/components/ui/primitives';
 import { useCases } from '@/lib/client/store';
-import { fetchUsage, getHealth } from '@/lib/client/ai';
+import { fetchUsage, getHealth, refreshHealth } from '@/lib/client/ai';
+import { isDemo, startDemo, stopDemo } from '@/lib/client/demo';
+import { toast } from '@/lib/client/toast';
 import type { UsagePayload } from '@/lib/ai/contracts';
 import type { CaseRecord } from '@/lib/types';
 import { COUNTRY_META } from '@/lib/constants';
@@ -29,11 +31,29 @@ export default function DashboardPage() {
   const [hasKey, setHasKey] = useState<boolean | null>(null);
   const [selected, setSelected] = useState<CaseRecord | null>(null);
   const [copied, setCopied] = useState(false);
+  const [demo, setDemo] = useState(false);
 
   useEffect(() => {
     fetchUsage(14).then(setUsage).catch(() => undefined);
     getHealth().then((h) => setHasKey(h.key.present)).catch(() => setHasKey(false));
+    setDemo(isDemo());
   }, [cases.length]);
+
+  function beginDemo() {
+    const first = startDemo();
+    refreshHealth().then((h) => setHasKey(h.key.present)).catch(() => undefined);
+    setDemo(true);
+    toast('العرض جاهز', { description: '٣ قضايا — افتح أي واحدة واضغط «شغّل كل شي»', tone: 'success' });
+    return first;
+  }
+
+  function endDemo() {
+    stopDemo();
+    refreshHealth().then((h) => setHasKey(h.key.present)).catch(() => undefined);
+    setDemo(false);
+    toast('انتهى العرض', { description: 'انمسحت بيانات المحاكاة', tone: 'info' });
+    window.location.reload();
+  }
 
   const stats = useMemo(() => {
     const closed = cases.filter((c) => ['reinstated', 'rejected', 'submitted'].includes(c.status));
@@ -90,9 +110,20 @@ export default function DashboardPage() {
         title="الرئيسية"
         description={cases.length ? `${stats.active} قضية شغّالة — ابدأ من اللي ينقصه تشخيص.` : 'ابدأ بثلاث خطوات، وبعدها كل شي يمشي تلقائي.'}
         actions={
-          <Link href="/new-case" className="btn-primary">
-            <Plus size={15} /> قضية جديدة
-          </Link>
+          <>
+            {demo ? (
+              <button type="button" className="btn-ghost" onClick={endDemo}>
+                إنهاء العرض
+              </button>
+            ) : (
+              <button type="button" className="btn-ghost" onClick={beginDemo}>
+                <Sparkles size={15} /> جرّب العرض
+              </button>
+            )}
+            <Link href="/new-case" className="btn-primary">
+              <Plus size={15} /> قضية جديدة
+            </Link>
+          </>
         }
       />
 
@@ -214,9 +245,9 @@ export default function DashboardPage() {
                 <Link href="/new-case" className="btn-primary">
                   <Plus size={14} /> أضف قضية
                 </Link>
-                <Link href="/start" className="btn-ghost">
-                  جرّب صفحة العميل
-                </Link>
+                <button type="button" className="btn-ghost" onClick={beginDemo}>
+                  <Sparkles size={14} /> شغّل العرض التجريبي
+                </button>
               </div>
             }
           />

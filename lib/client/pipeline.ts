@@ -182,11 +182,12 @@ export function suggestCategory(name: string): string {
 }
 
 /** Guesses the evidence type from a filename so documents link themselves. */
-export function guessDocCategory(filename: string): 'commercial_reg' | 'utility' | 'license' | 'storefront' | 'signage' | 'email' | 'screenshot' | 'other' {
+export function guessDocCategory(filename: string): 'commercial_reg' | 'utility' | 'license' | 'lease' | 'storefront' | 'signage' | 'email' | 'screenshot' | 'other' {
   const n = filename.toLowerCase();
   if (/سجل|cr|commercial/.test(n)) return 'commercial_reg';
   if (/رخص|license|بلدي/.test(n)) return 'license';
   if (/فاتور|كهرب|utility|bill|water/.test(n)) return 'utility';
+  if (/ايجار|إيجار|عقد|lease/.test(n)) return 'lease';
   if (/لافت|sign|شعار/.test(n)) return 'signage';
   if (/واج|واجه|محل|store|front/.test(n)) return 'storefront';
   if (/ايميل|بريد|email|mail/.test(n)) return 'email';

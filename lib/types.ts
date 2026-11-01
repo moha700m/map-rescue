@@ -15,7 +15,7 @@ export interface EvidenceDoc {
   name: string;
   mimeType: string;
   size: number;
-  category: 'commercial_reg' | 'utility' | 'license' | 'storefront' | 'signage' | 'video' | 'email' | 'screenshot' | 'other';
+  category: 'commercial_reg' | 'utility' | 'license' | 'lease' | 'storefront' | 'signage' | 'video' | 'email' | 'screenshot' | 'other';
   addedAt: string;
   extractedText?: string;
   status: 'pending' | 'parsed' | 'failed';

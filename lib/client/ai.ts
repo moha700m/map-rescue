@@ -13,6 +13,8 @@ import type {
 } from '../ai/contracts';
 import { summarizeUsage } from '../ai/analytics';
 import { getUsageRows, pushUsage } from './store';
+import { isDemo, demoHealth } from './demo';
+import { simulateTask, simulateConnection } from './simulate';
 import { uid, withBase } from '../utils';
 
 const SETTINGS_KEY = 'mra.ai.settings.v1';
@@ -63,6 +65,9 @@ function maskKey(key: string) {
 let healthPromise: Promise<AiHealth> | null = null;
 
 async function probe(): Promise<AiHealth> {
+  // Demo mode answers locally so the whole flow can be shown without a key.
+  if (isDemo()) return demoHealth();
+
   // Static export has no route handlers — skip the doomed HTTP probe entirely.
   if (process.env.NEXT_PUBLIC_STATIC_EXPORT === '1') return directHealth();
 
@@ -197,6 +202,7 @@ async function verifyKeyDirect(key: string) {
 /* ------------------------------------------------------------------ */
 
 export async function testConnection(opts: { apiKey?: string; model?: string } = {}): Promise<TestResult> {
+  if (isDemo()) return simulateConnection() as Promise<TestResult>;
   const health = await getHealth();
   if (health.mode === 'server') {
     const res = await fetch(withBase('/api/ai/test'), {
@@ -331,6 +337,7 @@ export interface RunOptions {
 }
 
 export async function runTask(opts: RunOptions): Promise<RunTaskResponse> {
+  if (isDemo()) return simulateTask(opts);
   const health = await getHealth();
   if (health.mode === 'server') {
     const res = await fetch(withBase('/api/ai/run'), {

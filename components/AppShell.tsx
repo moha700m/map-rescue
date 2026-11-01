@@ -26,6 +26,7 @@ import {
 import { NAV, NAV_GROUPS, GROUP_LABEL, navFor } from '@/lib/nav';
 import { cn } from '@/lib/utils';
 import { purgeLegacyData } from '@/lib/client/store';
+import { isDemo } from '@/lib/client/demo';
 import { getHealth } from '@/lib/client/ai';
 import Toaster from '@/components/ui/Toaster';
 
@@ -98,12 +99,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [demo, setDemo] = useState(false);
   const [query, setQuery] = useState('');
   const current = navFor(pathname || '/');
 
   useEffect(() => {
     purgeLegacyData();
-  }, []);
+    setDemo(isDemo());
+  }, [pathname]);
 
   useEffect(() => {
     setOpen(false);
@@ -225,6 +228,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <span className="kbd ms-2">⌘K</span>
             </button>
 
+
+            {demo ? (
+              <span className="hidden rounded-lg border border-amberx-500/30 bg-amberx-500/10 px-2 py-1 text-[10px] font-bold text-amberx-300 sm:inline">
+                عرض تجريبي
+              </span>
+            ) : null}
 
             <button type="button" className="relative rounded-xl border border-line p-2 text-slate-400 transition-colors hover:text-slate-200" aria-label="التنبيهات">
               <Bell size={16} />
