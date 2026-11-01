@@ -23,9 +23,8 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import { NAV, NAV_GROUPS, navFor } from '@/lib/nav';
+import { NAV, NAV_GROUPS, GROUP_LABEL, navFor } from '@/lib/nav';
 import { cn } from '@/lib/utils';
-import { ensureSeed } from '@/lib/client/store';
 import { getHealth } from '@/lib/client/ai';
 import Toaster from '@/components/ui/Toaster';
 
@@ -102,10 +101,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const current = navFor(pathname || '/');
 
   useEffect(() => {
-    ensureSeed();
-  }, []);
-
-  useEffect(() => {
     setOpen(false);
     setPaletteOpen(false);
   }, [pathname]);
@@ -143,7 +138,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           if (!items.length) return null;
           return (
             <div key={group}>
-              <p className="mb-1.5 px-2.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-600">{group}</p>
+              <p className="mb-1.5 px-2.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-600">{GROUP_LABEL[group] ?? group}</p>
               <div className="space-y-0.5">
                 {items.map((item) => {
                   const Icon = ICONS[item.icon] ?? LayoutDashboard;

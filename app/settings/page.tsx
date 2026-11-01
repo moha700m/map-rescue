@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { BrainCircuit, Database, Download, RotateCcw, ShieldCheck, Trash2, Wrench } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import { PageHeader, SectionCard } from '@/components/ui/primitives';
-import { clearWorkspace, getCases, getUsageRows, resetDemo, DEMO_MODE } from '@/lib/client/store';
+import { clearWorkspace, getCases, getUsageRows } from '@/lib/client/store';
 import { getHealth } from '@/lib/client/ai';
 import { toast } from '@/lib/client/toast';
 import type { AiHealth } from '@/lib/ai/contracts';
@@ -84,18 +84,6 @@ export default function SettingsPage() {
             <button type="button" className="btn-ghost btn-sm" onClick={exportAll}>
               <Download size={12} /> تصدير JSON
             </button>
-            {DEMO_MODE ? (
-              <button
-                type="button"
-                className="btn-ghost btn-sm"
-                onClick={() => {
-                  resetDemo();
-                  toast('رجعت البيانات التجريبية', { tone: 'success' });
-                }}
-              >
-                <RotateCcw size={12} /> رجّع البيانات التجريبية
-              </button>
-            ) : null}
             <button
               type="button"
               className="btn-danger btn-sm"

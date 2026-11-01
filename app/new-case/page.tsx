@@ -210,7 +210,7 @@ export default function NewCasePage() {
               <Link href="/customers" className="btn-primary">
                 افتح القضايا
               </Link>
-              <Link href="/appeals" className="btn-ghost">
+              <Link href="/submit" className="btn-ghost">
                 راجع الاستئناف
               </Link>
               <button
