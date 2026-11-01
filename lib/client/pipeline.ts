@@ -7,6 +7,7 @@ import type { Attachment } from '@/lib/ai/messages';
 import type { CaseRecord, DiagnosisResult } from '@/lib/types';
 import { fetchSettings, listModels, runTask } from './ai';
 import { upsertCase } from './store';
+import { isDemo } from './demo';
 import { caseTaskInput } from '@/lib/case-input';
 
 export type StepStatus = 'run' | 'ok' | 'skip' | 'fail';
@@ -77,7 +78,8 @@ export async function runCasePipeline(
   };
 
   // 1) Documents (only when files are available)
-  const hasFiles = (opts.attachments?.length ?? 0) > 0;
+  // In demo mode we run the document step too, so the walkthrough shows the full pipeline.
+  const hasFiles = (opts.attachments?.length ?? 0) > 0 || (isDemo() && record.documents.length > 0);
   if (hasFiles) {
     const docRes = await call('document-analysis', caseTaskInput(current), opts.attachments);
     if (docRes?.parsed) {
